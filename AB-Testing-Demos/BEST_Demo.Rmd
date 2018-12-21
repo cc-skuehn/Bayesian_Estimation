@@ -1,0 +1,42 @@
+---
+title: "BEST Demo"
+output: html_notebook
+---
+
+This is an example notebook about how to use BEST - Bayesian ESTimation - when evaluating a test.
+
+```{r}
+## Set path - adjust to your local path if needed
+setwd('~/git/analytics_scripts/cross_bu/AB-Testing-Demos/')
+
+## Helper file for better plotting
+source('~/git/analytics_scripts/cross_bu/AB-Testing-Demos/HelperFiles/Multiplot_fun.R')
+
+## Libraries
+library(ggplot2)
+
+## Set random seed for reproducibility
+set.seed(7)
+#set.seed(70)
+
+#######################
+### Example problem ###
+#######################
+## Create samples
+sample.1 <- rnorm(80, 100, 3)
+sample.2 <- rnorm(100, 103, 7)
+
+## Pool data for parameter estimation in the prior
+## Reasoning: Null hypothesis is that the data/samples are drawn from the same distribution, that's why we can pool the samples under this hypothesis
+pooled <- c(sample.1, sample.2)
+## Inspect sample distributions
+## Blue: Mean of the underlying "generating" distribution
+## Darkgreen: Mean of the concrete sample
+hs1 <- ggplot()+geom_histogram(aes(sample.1),binwidth = 1,fill='black')+xlim(min(pooled)-1,max(pooled)+1)+geom_vline(xintercept = 100,color='blue')+geom_vline(xintercept = mean(sample.1),color='darkgreen')+theme_bw()
+hs2 <- ggplot()+geom_histogram(aes(sample.2),binwidth = 1,fill='black')+xlim(min(pooled)-1,max(pooled)+1)+geom_vline(xintercept = 103,color='blue')+geom_vline(xintercept = mean(sample.2),color='darkgreen')+theme_bw()
+multiplot(hs1,hs2) -> ppr
+```
+
+The above plot shows the means of the generating distributions - the blue lines - and the empirical means of the samples - the green lines. The samples show a large difference in variance, sample.2 is much broader than sample.1.
+
+Given the parameters of the generating distributions behind sample.1 and sample.2 we can use the pwr package in order to calculate the group sizes required to determine significance for the given effect size.
